@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nicole公主的奇妙动物救援冒险</title>
+    <style>
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #FFE5F1;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23FFE5F1"/><circle cx="20" cy="20" r="8" fill="%23FFB6C1" opacity="0.7"/><circle cx="80" cy="80" r="12" fill="%23FFC0CB" opacity="0.5"/><path d="M60,40 Q65,20 80,30 T100,50" stroke="%23FF69B4" fill="none" stroke-width="2"/></svg>');
+            background-size: 200px 200px;
+        }
+        #startScreen, #gameScreen, #endScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 234, 245, 0.8);
+        }
+        #gameScreen, #endScreen {
+            display: none;
+        }
+        h1, h2 {
+            color: #FF6FB5;
+            text-align: center;
+            margin: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        p {
+            color: #FF6FB5;
+            text-align: center;
+            margin: 10px;
+            padding: 0 20px;
+            line-height: 1.5;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #FF6FB5;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        #player {
+            width: 60px;
+            height: 60px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .animal, .bomb {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            font-size: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 111, 181, 0.7);
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .control-btn:before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+        }
+        #timer, #score {
+            position: absolute;
+            top: 10px;
+            font-size: 18px;
+            color: #FF6FB5;
+            background-color: rgba(255,255,255,0.7);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+        #timer { left: 10px; }
+        #score { right: 10px; }
+        #scorePopup {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="startScreen">
+            <h1>Nicole公主的奇妙动物救援冒险</h1>
+            <p>亲爱的Nicole公主，祝贺你入职一周年！<br>在30秒内触碰尽可能多的小动物来救援它们！<br>注意躲避炸弹，以防止小动物受伤！</p>
+            <button onclick="startGame()">开始冒险</button>
+        </div>
+        <div id="gameScreen">
+            <div id="player"></div>
+            <div id="controls">
+                <button class="control-btn" ontouchstart="movePlayer('left')" ontouchend="stopPlayer()">◀</button>
+                <button class="control-btn" ontouchstart="movePlayer('right')" ontouchend="stopPlayer()">▶</button>
+            </div>
+            <div id="timer">时间: 30</div>
+            <div id="score">分数: 0</div>
+            <div id="scorePopup"></div>
+        </div>
+        <div id="endScreen">
+            <h2 id="endMessage"></h2>
+            <p id="encouragement"></p>
+            <button onclick="restartGame()">再来一次冒险</button>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const player = document.getElementById('player');
+        const startScreen = document.getElementById('startScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const endScreen = document.getElementById('endScreen');
+        const timerDisplay = document.getElementById('timer');
+        const scoreDisplay = document.getElementById('score');
+        const scorePopup = document.getElementById('scorePopup');
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let fallingObjects = [];
+        const animalTypes = ['🐰', '🐶', '🐱', '🐼', '🦊'];
+        let playerMovement = null;
+        let fallingSpeed = 2;
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            resetGame();
+            gameInterval = setInterval(updateGame, 1000);
+            spawnFallingObject();
+            gameLoop();
+        }
+
+        function resetGame() {
+            score = 0;
+            timeLeft = 30;
+            fallingSpeed = 2;
+            updateScore();
+            updateTimer();
+            player.style.left = '50%';
+            fallingObjects.forEach(obj => obj.element.remove());
+            fallingObjects = [];
+        }
+
+        function updateGame() {
+            timeLeft--;
+            updateTimer();
+            fallingSpeed += 0.1;
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function updateTimer() {
+            timerDisplay.textContent = `时间: ${timeLeft}`;
+        }
+
+        function updateScore() {
+            scoreDisplay.textContent = `分数: ${score}`;
+        }
+
+        function movePlayer(direction) {
+ } else if (checkCollision(player, obj.element)) {
+                    if (obj.type === 'animal') {
+                        score++;
+                        showScorePopup('+1', obj.element);
+                    } else if (obj.type === 'bomb') {
+                        score--;
+                        showScorePopup('-1', obj.element);
+                    }
+                    updateScore();
+                    obj.element.remove();
+                    fallingObjects = fallingObjects.filter(o => o !== obj);
+                }
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function showScorePopup(text, element) {
+            const rect = element.getBoundingClientRect();
+            scorePopup.style.left = `${rect.left}px`;
+            scorePopup.style.top = `${rect.top}px`;
+            scorePopup.textContent = text;
+            scorePopup.style.opacity = 1;
+            setTimeout(() => {
+                scorePopup.style.opacity = 0;
+            }, 500);
+        }
+
+        function spawnFallingObject() {
+            const animalOrBomb = Math.random() < 0.8 ? 'animal' : 'bomb';
+            const obj = document.createElement('div');
+            obj.className = animalOrBomb;
+            obj.textContent = animalOrBomb === 'animal' ? randomAnimal() : '💣';
+            gameScreen.appendChild(obj);
+            const left = Math.random() * (gameContainer.offsetWidth - 40);
+            obj.style.left = `${left}px`;
+            fallingObjects.push({ element: obj, top: 0, type: animalOrBomb });
+            setTimeout(spawnFallingObject, Math.random() * 2000);
+        }
+
+        function randomAnimal() {
+            return animalTypes[Math.floor(Math.random() * animalTypes.length)];
+        }
+
+        function checkCollision(player, object) {
+            const playerRect = player.getBoundingClientRect();
+            const objectRect = object.getBoundingClientRect();
+            return !(
+                playerRect.top > objectRect.bottom ||
+                playerRect.bottom < objectRect.top ||
+                playerRect.left > objectRect.right ||
+                playerRect.right < objectRect.left
+            );
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            gameScreen.style.display = 'none';
+            endScreen.style.display = 'flex';
+            const endMessage = document.getElementById('endMessage');
+            const encouragement = document.getElementById('encouragement');
+            endMessage.textContent = `游戏结束！你获得了 ${score} 分`;
+            if (score >= 15) {
+                encouragement.textContent = '太棒了，Nicole公主！你真是个小动物救援英雄！';
+            } else if (score >= 10) {
+                encouragement.textContent = '做得好，Nicole公主！继续加油！';
+            } else {
+                encouragement.textContent = '别灰心，Nicole公主！再试一次，你会更棒！';
+            }
+        }
+
+        function restartGame() {
+            endScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                movePlayer('left');
+            } else if (event.key === 'ArrowRight') {
+                movePlayer('right');
+            }
+        });
+
+        document.addEventListener('keyup', () => {
+            stopPlayer();
+        });
+    </script>
+</body>
+</html>
