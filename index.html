@@ -137,14 +137,14 @@
     <div id="gameContainer">
         <div id="startScreen">
             <h1>Nicole公主的奇妙动物救援冒险</h1>
-            <p>亲爱的Nicole公主，祝贺你入职一周年！<br>在30秒内触碰尽可能多的小动物来救援它们！<br>注意躲避炸弹，以防止小动物受伤！</p>
+            <p>亲爱的Nicole公主，祝贺你入职一周年快乐！<br>在30秒内触碰尽可能多的小动物来救援它们！<br>注意躲避炸弹，以防止小动物受伤！</p>
             <button onclick="startGame()">开始冒险</button>
         </div>
         <div id="gameScreen">
             <div id="player"></div>
             <div id="controls">
-                <button class="control-btn" ontouchstart="movePlayer('left')" ontouchend="stopPlayer()">◀</button>
-                <button class="control-btn" ontouchstart="movePlayer('right')" ontouchend="stopPlayer()">▶</button>
+                <button class="control-btn" ontouchstart="movePlayer('left')" ontouchend="stopPlayer()"></button>
+                <button class="control-btn" ontouchstart="movePlayer('right')" ontouchend="stopPlayer()"></button>
             </div>
             <div id="timer">时间: 30</div>
             <div id="score">分数: 0</div>
@@ -212,4 +212,4 @@
         }
 
         function movePlayer(direction) {
- 
+     
