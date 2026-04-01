@@ -162,13 +162,13 @@ button {
   <h2 id="finalTitle"></h2>
   <p id="finalScore"></p>
   <p id="fortuneMsg"></p>
-  <button onclick="downloadImage()">📸 Save</button>
   <button onclick="restartGame()">Play Again</button>
 </div>
 
 <!-- 音乐 -->
-<audio id="bgm" loop>
-  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7c7c3f4f4f.mp3?filename=happy-birthday-15255.mp3">
+<audio id="bgm" loop autoplay>
+  <source src="https://upload.wikimedia.org/wikipedia/commons/0/0f/Happy_Birthday_to_You.ogg" type="audio/ogg">
+  您的浏览器不支持音频播放。
 </audio>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -202,10 +202,8 @@ function updateUI(){
 }
 
 /* 控制 */
-let moveDirection = 0; // -1 左, 1 右
-function startMove(direction){
-  moveDirection = direction==='left'? -1 : 1;
-}
+let moveDirection = 0; 
+function startMove(direction){ moveDirection = direction==='left'? -1 : 1; }
 function stopMove(){ moveDirection=0; }
 
 const left=document.getElementById('left');
@@ -260,16 +258,12 @@ function fireworkBurst(x,y){
 /* 主循环 */
 function loop(){
   if(!gameRunning){ requestAnimationFrame(loop); return; }
-
-  // 根据屏幕宽度自适应速度
   const speed = window.innerWidth*0.004; 
   velocity += moveDirection*speed;
   velocity *= 0.9;
   x += velocity;
-
   if(x<0)x=0;
   if(x>window.innerWidth - player.offsetWidth)x=window.innerWidth - player.offsetWidth;
-
   let bounce=Math.sin(Date.now()/120)*5;
   player.style.left=x+'px';
   player.style.transform=`translateY(${bounce}px) rotate(${velocity*2}deg)`;
@@ -304,7 +298,6 @@ function endGame(){
   document.getElementById('finalTitle').innerText="🎂 Happy Birthday Jussie 🎂";
   document.getElementById('finalScore').innerText="You got "+score+" fortune points!";
   document.getElementById('fortuneMsg').innerText=msg+" For next "+finalDays+" days you will be extra lucky!";
-
   setTimeout(()=>{
     for(let i=0;i<8;i++){
       setTimeout(()=>{
@@ -312,15 +305,6 @@ function endGame(){
       },i*300);
     }
   },300);
-}
-
-function downloadImage(){
-  html2canvas(document.getElementById('gameScreen'),{useCORS:true}).then(canvas=>{
-    let link=document.createElement('a');
-    link.download="Birthday.png";
-    link.href=canvas.toDataURL("image/png");
-    link.click();
-  });
 }
 
 function restartGame(){ location.reload(); }
