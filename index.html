@@ -1,215 +1,185 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Happy_Birthday_Fortune_Game</title>
-    <style>
-        body {
-            font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #FFE5F1;
-            touch-action: manipulation;
-            user-select: none;
-        }
-        #gameContainer {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            overflow: hidden;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23FFE5F1"/><circle cx="20" cy="20" r="8" fill="%23FFB6C1" opacity="0.7"/><circle cx="80" cy="80" r="12" fill="%23FFC0CB" opacity="0.5"/><path d="M60,40 Q65,20 80,30 T100,50" stroke="%23FF69B4" fill="none" stroke-width="2"/></svg>');
-            background-size: 200px 200px;
-        }
-        #startScreen, #gameScreen, #endScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(255, 234, 245, 0.8);
-        }
-        #gameScreen, #endScreen {
-            display: none;
-        }
-        h1, h2 {
-            color: #FF6FB5;
-            text-align: center;
-            margin: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        p {
-            color: #FF6FB5;
-            text-align: center;
-            margin: 10px;
-            padding: 0 20px;
-            line-height: 1.5;
-        }
-        button {
-            font-size: 18px;
-            padding: 10px 20px;
-            margin: 10px;
-            background-color: #FF6FB5;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-        }
-        #player {
-            width: 60px;
-            height: 60px;
-            background-color: #FFD700;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .animal, .bomb {
-            width: 40px;
-            height: 40px;
-            position: absolute;
-            font-size: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-        }
-        .control-btn {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 111, 181, 0.7);
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .control-btn:before {
-            content: '';
-            width: 20px;
-            height: 20px;
-            background-color: white;
-            border-radius: 50%;
-        }
-        #timer, #score {
-            position: absolute;
-            top: 10px;
-            font-size: 18px;
-            color: #FF6FB5;
-            background-color: rgba(255,255,255,0.7);
-            padding: 5px 10px;
-            border-radius: 15px;
-        }
-        #timer { left: 10px; }
-        #score { right: 10px; }
-        #scorePopup {
-            position: absolute;
-            font-size: 24px;
-            font-weight: bold;
-            opacity: 0;
-            transition: all 0.5s ease;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortune Cat Birthday Game</title>
+
+<style>
+body {
+    margin:0;
+    overflow:hidden;
+    background:#FFE5F1;
+    font-family:sans-serif;
+}
+
+#game {
+    width:100vw;
+    height:100vh;
+    position:relative;
+}
+
+#player {
+    position:absolute;
+    bottom:80px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:50px;
+    transition: transform 0.1s;
+}
+
+.item {
+    position:absolute;
+    font-size:32px;
+}
+
+#ui {
+    position:absolute;
+    top:10px;
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    padding:0 10px;
+}
+
+button{
+    position:absolute;
+    bottom:20px;
+    width:80px;
+    height:80px;
+    border:none;
+    border-radius:50%;
+    font-size:24px;
+    background:#ff6fb5;
+    color:white;
+}
+
+#left{left:20px;}
+#right{right:20px;}
+</style>
 </head>
+
 <body>
-    <div id="gameContainer">
-        <div id="startScreen">
-            <h1>Happy_Birthday_Fortune_Game</h1>
-            <p>Dear Jussie, Wishing You A Happy Birthday！<br>In 30 second try your best to catch more fortune for our dear Jussie！<br>Caution to avoid boom to prevent cuties in hurt！</p>
-            <button onclick="startGame()">Start the Exploration!</button>
-        </div>
-        <div id="gameScreen">
-            <div id="player"></div>
-            <div id="controls">
-                <button class="control-btn" ontouchstart="movePlayer('left')" ontouchend="stopPlayer()"></button>
-                <button class="control-btn" ontouchstart="movePlayer('right')" ontouchend="stopPlayer()"></button>
-            </div>
-            <div id="timer">Time: 30</div>
-            <div id="score">Score: 0</div>
-            <div id="scorePopup"></div>
-        </div>
-        <div id="endScreen">
-            <h2 id="endMessage"></h2>
-            <p id="encouragement"></p>
-            <button onclick="restartGame()">Try One More Time</button>
-        </div>
-    </div>
 
-    <script>
-        const gameContainer = document.getElementById('gameContainer');
-        const player = document.getElementById('player');
-        const startScreen = document.getElementById('startScreen');
-        const gameScreen = document.getElementById('gameScreen');
-        const endScreen = document.getElementById('endScreen');
-        const timerDisplay = document.getElementById('timer');
-        const scoreDisplay = document.getElementById('score');
-        const scorePopup = document.getElementById('scorePopup');
-        let score = 0;
-        let timeLeft = 30;
-        let gameInterval;
-        let fallingObjects = [];
-        const animalTypes = ['🎂', '🍰', '🍭', '🍩', '🧁'];
-        let playerMovement = null;
-        let fallingSpeed = 2;
+<div id="game">
 
-        function startGame() {
-            startScreen.style.display = 'none';
-            gameScreen.style.display = 'flex';
-            resetGame();
-            gameInterval = setInterval(updateGame, 1000);
-            spawnFallingObject();
-            gameLoop();
-        }
+<div id="player">🐱</div>
 
-        function resetGame() {
-            score = 0;
-            timeLeft = 30;
-            fallingSpeed = 2;
-            updateScore();
-            updateTimer();
-            player.style.left = '50%';
-            fallingObjects.forEach(obj => obj.element.remove());
-            fallingObjects = [];
-        }
+<div id="ui">
+<div id="time">Time:30</div>
+<div id="score">Score:0</div>
+</div>
 
-        function updateGame() {
-            timeLeft--;
-            updateTimer();
-            fallingSpeed += 0.1;
-            if (timeLeft <= 0) {
-                endGame();
-            }
-        }
+<button id="left">⬅</button>
+<button id="right">➡</button>
 
-        function updateTimer() {
-            timerDisplay.textContent = `时间: ${timeLeft}`;
-        }
+</div>
 
-        function updateScore() {
-            scoreDisplay.textContent = `分数: ${score}`;
-        }
+<script>
+const player=document.getElementById('player');
 
-        function movePlayer(direction) {
-     
+let x=window.innerWidth/2;
+let velocity=0;
+let accel=0;
+
+let score=0;
+let time=30;
+let items=[];
+
+const desserts=['🍰','🧁','🍩','🍭'];
+
+function updateUI(){
+document.getElementById('score').innerText="Score:"+score;
+document.getElementById('time').innerText="Time:"+time;
+}
+
+// 🎮 控制（更丝滑）
+document.getElementById('left').onmousedown=()=>accel=-0.5;
+document.getElementById('right').onmousedown=()=>accel=0.5;
+document.onmouseup=()=>accel=0;
+
+// 键盘支持
+document.onkeydown=e=>{
+if(e.key==="ArrowLeft") accel=-0.5;
+if(e.key==="ArrowRight") accel=0.5;
+}
+document.onkeyup=()=>accel=0;
+
+
+// 🍰 生成物件
+setInterval(()=>{
+let el=document.createElement('div');
+
+let bomb=Math.random()<0.2;
+el.className='item';
+el.innerText=bomb?'💣':desserts[Math.floor(Math.random()*desserts.length)];
+
+el.style.left=Math.random()*(window.innerWidth-30)+'px';
+el.style.top='0px';
+
+game.appendChild(el);
+
+items.push({el,bomb});
+},700);
+
+
+// 🎯 游戏主循环（丝滑关键）
+function loop(){
+
+// 移动系统（惯性 + 阻力）
+velocity+=accel;
+velocity*=0.92; // 阻力
+
+x+=velocity;
+
+if(x<0) x=0;
+if(x>window.innerWidth-40) x=window.innerWidth-40;
+
+player.style.left=x+'px';
+
+// 猫咪微动画（更生动）
+player.style.transform=`translateX(0px) rotate(${velocity*2}deg)`;
+
+
+// 掉落逻辑
+items.forEach((o,i)=>{
+let top=o.el.offsetTop+3;
+o.el.style.top=top+'px';
+
+let p=player.getBoundingClientRect();
+let r=o.el.getBoundingClientRect();
+
+if(r.bottom>=p.top && r.left<p.right && r.right>p.left){
+
+score+=o.bomb?-5:10;
+o.el.remove();
+items.splice(i,1);
+updateUI();
+}
+
+if(top>window.innerHeight){
+o.el.remove();
+items.splice(i,1);
+}
+});
+
+requestAnimationFrame(loop);
+}
+loop();
+
+
+// ⏱ 时间
+setInterval(()=>{
+time--;
+updateUI();
+
+if(time<=0){
+alert("Final Score: "+score);
+location.reload();
+}
+},1000);
+
+</script>
+
+</body>
+</html>
