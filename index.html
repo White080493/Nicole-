@@ -6,14 +6,16 @@
 <title>Birthday Fortune Game</title>
 
 <style>
-body{
+body, html{
   margin:0;
+  padding:0;
   font-family:sans-serif;
   background:linear-gradient(#FFE5F1,#FFD1EC);
   overflow:hidden;
+  width:100%;
+  height:100%;
 }
 
-/* 屏幕 */
 .screen{
   position:absolute;
   width:100%;
@@ -26,19 +28,31 @@ body{
 }
 .hidden{display:none;}
 
+#game{
+  position:relative;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+
 #player{
   position:absolute;
   bottom:90px;
-  font-size:60px;
+  font-size:8vw; /* 自适应屏幕大小 */
+  max-font-size:60px;
 }
 
-.item{position:absolute;font-size:32px;}
+.item{
+  position:absolute;
+  font-size:6vw;
+  max-font-size:32px;
+}
 
-/* 控制按钮优化 */
-#controls {
+/* 控制按钮 */
+#controls{
   position: absolute;
-  bottom:40px; /* 离底部稍高 */
-  width:160px; /* 包含左右按钮 */
+  bottom:4vh; /* 离底部 4% 高度 */
+  width:160px;
   display: flex;
   justify-content: space-between;
   left:50%;
@@ -50,13 +64,16 @@ body{
 }
 
 .control-btn{
-  width:70px;
-  height:70px;
+  width:12vw;
+  max-width:70px;
+  height:12vw;
+  max-height:70px;
   border-radius:50%;
   border:none;
   background: linear-gradient(145deg,#ff9ec2,#ff6fb5);
   color:white;
-  font-size:28px;
+  font-size:6vw;
+  max-font-size:28px;
   cursor:pointer;
   transition: transform 0.1s, box-shadow 0.2s;
 }
@@ -71,30 +88,29 @@ body{
   box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
-/* ❤️ 爱心 */
+/* 爱心 */
 .heart{
   position:absolute;
   animation:float 1s forwards;
 }
 @keyframes float{
   0%{opacity:1;}
-  100%{opacity:0;transform:translateY(-80px) scale(1.5);}
+  100%{opacity:0;transform:translateY(-8vh) scale(1.5);}
 }
 
-/* 🎆 烟花 */
+/* 烟花 */
 .firework{
   position:absolute;
-  width:6px;
-  height:6px;
+  width:0.8vw;
+  height:0.8vw;
+  max-width:6px;
+  max-height:6px;
   border-radius:50%;
   animation:explode 1s ease-out forwards;
 }
 @keyframes explode{
   0%{opacity:1;}
-  100%{
-    opacity:0;
-    transform:translate(var(--x),var(--y));
-  }
+  100%{opacity:0; transform:translate(var(--x),var(--y));}
 }
 
 button{
@@ -107,19 +123,18 @@ button{
 }
 </style>
 </head>
-
 <body>
 
-<!-- 🎀 开场 -->
+<!-- 开场 -->
 <div id="startScreen" class="screen">
 <h1>🎂 Happy Birthday Jussie 🎂</h1>
 <p>Catch sweet fortune 💖 Avoid bombs!</p>
 <button onclick="startGame()">Start</button>
 </div>
 
-<!-- 🎮 游戏 -->
+<!-- 游戏 -->
 <div id="gameScreen" class="screen hidden">
-<div id="game" style="width:100%;height:100%;position:relative;">
+<div id="game">
 
 <div id="player">🐱</div>
 
@@ -136,33 +151,26 @@ button{
 </div>
 </div>
 
-<!-- 🎉 结算 -->
+<!-- 结算 -->
 <div id="endScreen" class="screen hidden">
 <h2 id="finalTitle"></h2>
 <p id="finalScore"></p>
 <p id="fortuneMsg"></p>
-
-<button onclick="shareWhatsApp()">📱 Share</button>
 <button onclick="downloadImage()">📸 Save</button>
 <button onclick="restartGame()">Play Again</button>
 </div>
 
-<!-- 🎵 音乐 -->
+<!-- 音乐 -->
 <audio id="bgm" loop>
 <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7c7c3f4f4f.mp3?filename=happy-birthday-15255.mp3">
 </audio>
 
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 const player=document.getElementById('player');
 const bgm=document.getElementById('bgm');
-
-let x=window.innerWidth/2;
-let velocity=0,accel=0;
-
-let score=0,time=30,items=[];
-let gameRunning=false;
-let finalDays=0;
-
+let x=window.innerWidth/2, velocity=0, accel=0;
+let score=0, time=30, items=[], gameRunning=false, finalDays=0;
 const desserts=['🍰','🧁','🍩','🍭'];
 
 function show(s){
@@ -172,23 +180,15 @@ function show(s){
   document.getElementById(s).classList.remove('hidden');
 }
 
-/* 开始 */
 function startGame(){
   show('gameScreen');
   bgm.play();
-
-  score=0;
-  time=30;
-  items=[];
-  gameRunning=true;
-
+  score=0; time=30; items=[]; gameRunning=true;
   updateUI();
 }
 
-/* UI */
 const scoreEl=document.getElementById('score');
 const timeEl=document.getElementById('time');
-
 function updateUI(){
   scoreEl.innerText="Score:"+score;
   timeEl.innerText="Time:"+time;
@@ -198,43 +198,28 @@ function updateUI(){
 let moveInterval = null;
 function startMove(direction){
   if(moveInterval) clearInterval(moveInterval);
-  moveInterval = setInterval(()=>{
-    accel = direction === 'left' ? -0.7 : 0.7;
-  }, 16);
+  moveInterval = setInterval(()=>{ accel = direction==='left'? -0.7 : 0.7; },16);
 }
-function stopMove(){
-  if(moveInterval) clearInterval(moveInterval);
-  moveInterval = null;
-  accel = 0;
-}
-
-/* 鼠标和触控事件 */
-left.onmousedown = () => startMove('left');
-right.onmousedown = () => startMove('right');
-left.ontouchstart = () => startMove('left');
-right.ontouchstart = () => startMove('right');
-document.onmouseup = stopMove;
-document.ontouchend = stopMove;
+function stopMove(){ if(moveInterval) clearInterval(moveInterval); moveInterval=null; accel=0;}
+left.onmousedown=()=>startMove('left'); right.onmousedown=()=>startMove('right');
+left.ontouchstart=()=>startMove('left'); right.ontouchstart=()=>startMove('right');
+document.onmouseup=stopMove; document.ontouchend=stopMove;
 
 /* 掉落 */
 setInterval(()=>{
   if(!gameRunning) return;
   if(items.length>20) return;
-
   let el=document.createElement('div');
   let bomb=Math.random()<0.2;
-
   el.className='item';
   el.innerText=bomb?'💣':desserts[Math.floor(Math.random()*desserts.length)];
-
   el.style.left=Math.random()*(window.innerWidth-30)+'px';
   el.style.top='0px';
-
   game.appendChild(el);
   items.push({el,bomb});
 },700);
 
-/* ❤️ 爱心 */
+/* 爱心 */
 function heartBurst(x,y){
   for(let i=0;i<6;i++){
     let h=document.createElement('div');
@@ -247,22 +232,17 @@ function heartBurst(x,y){
   }
 }
 
-/* 🎆 烟花 */
+/* 烟花 */
 function fireworkBurst(x,y){
   for(let i=0;i<20;i++){
     let f=document.createElement('div');
     f.className='firework';
     f.style.background=`hsl(${Math.random()*360},100%,60%)`;
-
     let angle=Math.random()*2*Math.PI;
-    let distance=80+Math.random()*40;
-
+    let distance=window.innerHeight*0.1+Math.random()*window.innerHeight*0.05;
     f.style.setProperty('--x',Math.cos(angle)*distance+'px');
     f.style.setProperty('--y',Math.sin(angle)*distance+'px');
-
-    f.style.left=x+'px';
-    f.style.top=y+'px';
-
+    f.style.left=x+'px'; f.style.top=y+'px';
     document.body.appendChild(f);
     setTimeout(()=>f.remove(),1000);
   }
@@ -270,49 +250,21 @@ function fireworkBurst(x,y){
 
 /* 主循环 */
 function loop(){
-
-  if(!gameRunning){
-    requestAnimationFrame(loop);
-    return;
-  }
-
-  velocity+=accel;
-  velocity*=0.9;
-  x+=velocity;
-
-  if(x<0)x=0;
-  if(x>window.innerWidth-50)x=window.innerWidth-50;
-
+  if(!gameRunning){ requestAnimationFrame(loop); return; }
+  velocity+=accel; velocity*=0.9; x+=velocity;
+  if(x<0)x=0; if(x>window.innerWidth-50)x=window.innerWidth-50;
   let bounce=Math.sin(Date.now()/120)*5;
   player.style.left=x+'px';
   player.style.transform=`translateY(${bounce}px) rotate(${velocity*2}deg)`;
-
-  /* 碰撞 */
   items.forEach((o,i)=>{
-    let top=o.el.offsetTop+4;
-    o.el.style.top=top+'px';
-
-    let p=player.getBoundingClientRect();
-    let r=o.el.getBoundingClientRect();
-
+    let top=o.el.offsetTop+4; o.el.style.top=top+'px';
+    let p=player.getBoundingClientRect(); let r=o.el.getBoundingClientRect();
     if(r.bottom>=p.top && r.left<p.right && r.right>p.left){
-      if(!o.bomb){
-        score+=10;
-        heartBurst(r.left,r.top);
-      }else{
-        score-=5;
-      }
-      o.el.remove();
-      items.splice(i,1);
-      updateUI();
+      if(!o.bomb){ score+=10; heartBurst(r.left,r.top); } else{ score-=5; }
+      o.el.remove(); items.splice(i,1); updateUI();
     }
-
-    if(top>window.innerHeight){
-      o.el.remove();
-      items.splice(i,1);
-    }
+    if(top>window.innerHeight){ o.el.remove(); items.splice(i,1); }
   });
-
   requestAnimationFrame(loop);
 }
 loop();
@@ -320,67 +272,42 @@ loop();
 /* 时间 */
 setInterval(()=>{
   if(!gameRunning) return;
-
-  time--;
-  updateUI();
-
-  if(time<=0){
-    gameRunning=false;
-    endGame();
-  }
+  time--; updateUI();
+  if(time<=0){ gameRunning=false; endGame(); }
 },1000);
 
-/* 🎉 结束 */
+/* 结束 */
 function endGame(){
   bgm.pause();
   show('endScreen');
-
   let msg;
-
   if(score>120){msg="🌟 Super Lucky!";finalDays=365;}
   else if(score>70){msg="✨ Very Lucky!";finalDays=200;}
   else{msg="💖 Sweet Lucky!";finalDays=100;}
-
   finalTitle.innerText="🎂 Happy Birthday Jussie 🎂";
   finalScore.innerText="You got "+score+" fortune points!";
   fortuneMsg.innerText=msg+" For next "+finalDays+" days you will be extra lucky!";
-
-  /* 烟花 */
   setTimeout(()=>{
     for(let i=0;i<8;i++){
       setTimeout(()=>{
-        fireworkBurst(
-          Math.random()*window.innerWidth,
-          Math.random()*window.innerHeight/2
-        );
+        fireworkBurst(Math.random()*window.innerWidth,Math.random()*window.innerHeight/2);
       },i*300);
     }
   },300);
 }
 
-/* 📱 分享 */
-function shareWhatsApp(){
-  let text=`🎂 Happy Birthday Jussie 🎂\nI got ${score} points!\nYou will be lucky for ${finalDays} days 💖`;
-  window.open("https://wa.me/?text="+encodeURIComponent(text));
-}
-
-/* 📸 截图 */
+/* 截图 */
 function downloadImage(){
-  html2canvas(document.body).then(canvas=>{
+  html2canvas(document.getElementById('gameScreen'),{useCORS:true}).then(canvas=>{
     let link=document.createElement('a');
     link.download="Birthday.png";
-    link.href=canvas.toDataURL();
+    link.href=canvas.toDataURL("image/png");
     link.click();
   });
 }
 
 /* 重来 */
-function restartGame(){
-  location.reload();
-}
+function restartGame(){ location.reload(); }
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
 </body>
 </html>
