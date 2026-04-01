@@ -52,15 +52,6 @@ color:white;
 font-size:28px;
 }
 
-button{
-padding:10px 20px;
-border:none;
-border-radius:20px;
-background:#ff6fb5;
-color:white;
-margin-top:10px;
-}
-
 /* ❤️ 爱心 */
 .heart{
 position:absolute;
@@ -80,22 +71,34 @@ border-radius:50%;
 animation:explode 1s ease-out forwards;
 }
 @keyframes explode{
-0%{transform:scale(1);opacity:1;}
-100%{transform:translate(var(--x),var(--y)) scale(0.5);opacity:0;}
+0%{opacity:1;}
+100%{
+opacity:0;
+transform:translate(var(--x),var(--y));
+}
+}
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:20px;
+background:#ff6fb5;
+color:white;
+margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 🎀 Start -->
+<!-- 🎀 开场 -->
 <div id="startScreen" class="screen">
 <h1>🎂 Happy Birthday Jussie 🎂</h1>
-<p>Catch sweet fortune 💖</p>
+<p>Catch sweet fortune 💖 Avoid bombs!</p>
 <button onclick="startGame()">Start</button>
 </div>
 
-<!-- 🎮 Game -->
+<!-- 🎮 游戏 -->
 <div id="gameScreen" class="screen hidden">
 <div id="game" style="width:100%;height:100%;position:relative;">
 
@@ -114,7 +117,7 @@ animation:explode 1s ease-out forwards;
 </div>
 </div>
 
-<!-- 🎉 End -->
+<!-- 🎉 结算 -->
 <div id="endScreen" class="screen hidden">
 <h2 id="finalTitle"></h2>
 <p id="finalScore"></p>
@@ -125,8 +128,9 @@ animation:explode 1s ease-out forwards;
 <button onclick="restartGame()">Play Again</button>
 </div>
 
+<!-- 🎵 音乐 -->
 <audio id="bgm" loop>
-<source src="https://www2.cs.uic.edu/~i101/SoundFiles/HappyBirthday.wav">
+<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7c7c3f4f4f.mp3?filename=happy-birthday-15255.mp3">
 </audio>
 
 <script>
@@ -135,8 +139,9 @@ const bgm=document.getElementById('bgm');
 
 let x=window.innerWidth/2;
 let velocity=0,accel=0;
-let score=0,time=30,items=[];
 
+let score=0,time=30,items=[];
+let gameRunning=false;
 let finalDays=0;
 
 const desserts=['🍰','🧁','🍩','🍭'];
@@ -148,20 +153,27 @@ document.getElementById(id).classList.add('hidden');
 document.getElementById(s).classList.remove('hidden');
 }
 
+/* 开始 */
 function startGame(){
 show('gameScreen');
 bgm.play();
-score=0;time=30;items=[];
+
+score=0;
+time=30;
+items=[];
+gameRunning=true;
+
 updateUI();
 }
+
+/* UI */
+const scoreEl=document.getElementById('score');
+const timeEl=document.getElementById('time');
 
 function updateUI(){
 scoreEl.innerText="Score:"+score;
 timeEl.innerText="Time:"+time;
 }
-
-const scoreEl=document.getElementById('score');
-const timeEl=document.getElementById('time');
 
 /* 控制 */
 left.onmousedown=()=>accel=-0.7;
@@ -170,7 +182,8 @@ document.onmouseup=()=>accel=0;
 
 /* 掉落 */
 setInterval(()=>{
-if(time<=0)return;
+if(!gameRunning) return;
+if(items.length>20) return;
 
 let el=document.createElement('div');
 let bomb=Math.random()<0.2;
@@ -183,7 +196,7 @@ el.style.top='0px';
 
 game.appendChild(el);
 items.push({el,bomb});
-},600);
+},700);
 
 /* ❤️ 爱心 */
 function heartBurst(x,y){
@@ -222,6 +235,11 @@ setTimeout(()=>f.remove(),1000);
 /* 主循环 */
 function loop(){
 
+if(!gameRunning){
+requestAnimationFrame(loop);
+return;
+}
+
 velocity+=accel;
 velocity*=0.9;
 x+=velocity;
@@ -233,6 +251,7 @@ let bounce=Math.sin(Date.now()/120)*5;
 player.style.left=x+'px';
 player.style.transform=`translateY(${bounce}px) rotate(${velocity*2}deg)`;
 
+/* 碰撞 */
 items.forEach((o,i)=>{
 let top=o.el.offsetTop+4;
 o.el.style.top=top+'px';
@@ -264,10 +283,15 @@ loop();
 
 /* 时间 */
 setInterval(()=>{
-if(time<=0)return;
+if(!gameRunning) return;
+
 time--;
 updateUI();
-if(time<=0) endGame();
+
+if(time<=0){
+gameRunning=false;
+endGame();
+}
 },1000);
 
 /* 🎉 结束 */
@@ -285,7 +309,8 @@ finalTitle.innerText="🎂 Happy Birthday Jussie 🎂";
 finalScore.innerText="You got "+score+" fortune points!";
 fortuneMsg.innerText=msg+" For next "+finalDays+" days you will be extra lucky!";
 
-/* 🎆 烟花连发 */
+/* 烟花 */
+setTimeout(()=>{
 for(let i=0;i<8;i++){
 setTimeout(()=>{
 fireworkBurst(
@@ -294,13 +319,13 @@ Math.random()*window.innerHeight/2
 );
 },i*300);
 }
+},300);
 }
 
 /* 📱 分享 */
 function shareWhatsApp(){
-let text=`🎂 Happy Birthday Jussie 🎂\nI got ${score} fortune points!\nYou will be lucky for ${finalDays} days 💖`;
-let url="https://wa.me/?text="+encodeURIComponent(text);
-window.open(url,"_blank");
+let text=`🎂 Happy Birthday Jussie 🎂\nI got ${score} points!\nYou will be lucky for ${finalDays} days 💖`;
+window.open("https://wa.me/?text="+encodeURIComponent(text));
 }
 
 /* 📸 截图 */
@@ -319,7 +344,7 @@ location.reload();
 }
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 </body>
 </html>
