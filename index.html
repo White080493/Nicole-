@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nicole公主的奇妙动物救援冒险</title>
+    <title>Happy_Birthday_Fortune_Game</title>
     <style>
         body {
             font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
@@ -136,9 +136,9 @@
 <body>
     <div id="gameContainer">
         <div id="startScreen">
-            <h1>Nicole公主的奇妙动物救援冒险</h1>
-            <p>亲爱的Nicole公主，祝贺你入职一周年快乐！<br>在30秒内触碰尽可能多的小动物来救援它们！<br>注意躲避炸弹，以防止小动物受伤！</p>
-            <button onclick="startGame()">开始冒险</button>
+            <h1>Happy_Birthday_Fortune_Game</h1>
+            <p>Dear Jussie, Wishing You A Happy Birthday！<br>In 30 second try your best to catch more fortune for our dear Jussie！<br>Caution to avoid boom to prevent cuties in hurt！</p>
+            <button onclick="startGame()">Start the Exploration!</button>
         </div>
         <div id="gameScreen">
             <div id="player"></div>
@@ -146,14 +146,14 @@
                 <button class="control-btn" ontouchstart="movePlayer('left')" ontouchend="stopPlayer()"></button>
                 <button class="control-btn" ontouchstart="movePlayer('right')" ontouchend="stopPlayer()"></button>
             </div>
-            <div id="timer">时间: 30</div>
-            <div id="score">分数: 0</div>
+            <div id="timer">Time: 30</div>
+            <div id="score">Score: 0</div>
             <div id="scorePopup"></div>
         </div>
         <div id="endScreen">
             <h2 id="endMessage"></h2>
             <p id="encouragement"></p>
-            <button onclick="restartGame()">再来一次冒险</button>
+            <button onclick="restartGame()">Try One More Time</button>
         </div>
     </div>
 
@@ -170,7 +170,7 @@
         let timeLeft = 30;
         let gameInterval;
         let fallingObjects = [];
-        const animalTypes = ['🐰', '🐶', '🐱', '🐼', '🦊'];
+        const animalTypes = ['🎂', '🍰', '🍭', '🍩', '🧁'];
         let playerMovement = null;
         let fallingSpeed = 2;
 
