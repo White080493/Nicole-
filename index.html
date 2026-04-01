@@ -3,114 +3,178 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fortune Cat Birthday Game</title>
+<title>Birthday Fortune Game</title>
 
 <style>
-body {
-    margin:0;
-    overflow:hidden;
-    background:#FFE5F1;
-    font-family:sans-serif;
+body{
+margin:0;
+font-family:sans-serif;
+background:linear-gradient(#FFE5F1,#FFD1EC);
+overflow:hidden;
 }
 
-#game {
-    width:100vw;
-    height:100vh;
-    position:relative;
+/* 屏幕 */
+.screen{
+position:absolute;
+width:100%;
+height:100%;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+}
+.hidden{display:none;}
+
+#player{
+position:absolute;
+bottom:90px;
+font-size:60px;
 }
 
-#player {
-    position:absolute;
-    bottom:80px;
-    left:50%;
-    transform:translateX(-50%);
-    font-size:50px;
-    transition: transform 0.1s;
+.item{position:absolute;font-size:32px;}
+
+#controls{
+position:absolute;
+bottom:25px;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:0 40px;
 }
 
-.item {
-    position:absolute;
-    font-size:32px;
-}
-
-#ui {
-    position:absolute;
-    top:10px;
-    width:100%;
-    display:flex;
-    justify-content:space-between;
-    padding:0 10px;
+.control-btn{
+width:80px;height:80px;
+border-radius:50%;
+border:none;
+background:#ff6fb5;
+color:white;
+font-size:28px;
 }
 
 button{
-    position:absolute;
-    bottom:20px;
-    width:80px;
-    height:80px;
-    border:none;
-    border-radius:50%;
-    font-size:24px;
-    background:#ff6fb5;
-    color:white;
+padding:10px 20px;
+border:none;
+border-radius:20px;
+background:#ff6fb5;
+color:white;
+margin-top:10px;
 }
 
-#left{left:20px;}
-#right{right:20px;}
+/* ❤️ 爱心 */
+.heart{
+position:absolute;
+animation:float 1s forwards;
+}
+@keyframes float{
+0%{opacity:1;}
+100%{opacity:0;transform:translateY(-80px) scale(1.5);}
+}
+
+/* 🎆 烟花 */
+.firework{
+position:absolute;
+width:6px;
+height:6px;
+border-radius:50%;
+animation:explode 1s ease-out forwards;
+}
+@keyframes explode{
+0%{transform:scale(1);opacity:1;}
+100%{transform:translate(var(--x),var(--y)) scale(0.5);opacity:0;}
+}
 </style>
 </head>
 
 <body>
 
-<div id="game">
+<!-- 🎀 Start -->
+<div id="startScreen" class="screen">
+<h1>🎂 Happy Birthday Jussie 🎂</h1>
+<p>Catch sweet fortune 💖</p>
+<button onclick="startGame()">Start</button>
+</div>
+
+<!-- 🎮 Game -->
+<div id="gameScreen" class="screen hidden">
+<div id="game" style="width:100%;height:100%;position:relative;">
 
 <div id="player">🐱</div>
 
-<div id="ui">
+<div style="position:absolute;top:10px;width:100%;display:flex;justify-content:space-between;padding:0 15px;">
 <div id="time">Time:30</div>
 <div id="score">Score:0</div>
 </div>
 
-<button id="left">⬅</button>
-<button id="right">➡</button>
+<div id="controls">
+<button class="control-btn" id="left">⬅</button>
+<button class="control-btn" id="right">➡</button>
+</div>
 
 </div>
+</div>
+
+<!-- 🎉 End -->
+<div id="endScreen" class="screen hidden">
+<h2 id="finalTitle"></h2>
+<p id="finalScore"></p>
+<p id="fortuneMsg"></p>
+
+<button onclick="shareWhatsApp()">📱 Share</button>
+<button onclick="downloadImage()">📸 Save</button>
+<button onclick="restartGame()">Play Again</button>
+</div>
+
+<audio id="bgm" loop>
+<source src="https://www2.cs.uic.edu/~i101/SoundFiles/HappyBirthday.wav">
+</audio>
 
 <script>
 const player=document.getElementById('player');
+const bgm=document.getElementById('bgm');
 
 let x=window.innerWidth/2;
-let velocity=0;
-let accel=0;
+let velocity=0,accel=0;
+let score=0,time=30,items=[];
 
-let score=0;
-let time=30;
-let items=[];
+let finalDays=0;
 
 const desserts=['🍰','🧁','🍩','🍭'];
 
-function updateUI(){
-document.getElementById('score').innerText="Score:"+score;
-document.getElementById('time').innerText="Time:"+time;
+function show(s){
+['startScreen','gameScreen','endScreen'].forEach(id=>{
+document.getElementById(id).classList.add('hidden');
+});
+document.getElementById(s).classList.remove('hidden');
 }
 
-// 🎮 控制（更丝滑）
-document.getElementById('left').onmousedown=()=>accel=-0.5;
-document.getElementById('right').onmousedown=()=>accel=0.5;
+function startGame(){
+show('gameScreen');
+bgm.play();
+score=0;time=30;items=[];
+updateUI();
+}
+
+function updateUI(){
+scoreEl.innerText="Score:"+score;
+timeEl.innerText="Time:"+time;
+}
+
+const scoreEl=document.getElementById('score');
+const timeEl=document.getElementById('time');
+
+/* 控制 */
+left.onmousedown=()=>accel=-0.7;
+right.onmousedown=()=>accel=0.7;
 document.onmouseup=()=>accel=0;
 
-// 键盘支持
-document.onkeydown=e=>{
-if(e.key==="ArrowLeft") accel=-0.5;
-if(e.key==="ArrowRight") accel=0.5;
-}
-document.onkeyup=()=>accel=0;
-
-
-// 🍰 生成物件
+/* 掉落 */
 setInterval(()=>{
-let el=document.createElement('div');
+if(time<=0)return;
 
+let el=document.createElement('div');
 let bomb=Math.random()<0.2;
+
 el.className='item';
 el.innerText=bomb?'💣':desserts[Math.floor(Math.random()*desserts.length)];
 
@@ -118,40 +182,71 @@ el.style.left=Math.random()*(window.innerWidth-30)+'px';
 el.style.top='0px';
 
 game.appendChild(el);
-
 items.push({el,bomb});
-},700);
+},600);
 
+/* ❤️ 爱心 */
+function heartBurst(x,y){
+for(let i=0;i<6;i++){
+let h=document.createElement('div');
+h.className='heart';
+h.innerText='💖';
+h.style.left=x+'px';
+h.style.top=y+'px';
+game.appendChild(h);
+setTimeout(()=>h.remove(),1000);
+}
+}
 
-// 🎯 游戏主循环（丝滑关键）
+/* 🎆 烟花 */
+function fireworkBurst(x,y){
+for(let i=0;i<20;i++){
+let f=document.createElement('div');
+f.className='firework';
+f.style.background=`hsl(${Math.random()*360},100%,60%)`;
+
+let angle=Math.random()*2*Math.PI;
+let distance=80+Math.random()*40;
+
+f.style.setProperty('--x',Math.cos(angle)*distance+'px');
+f.style.setProperty('--y',Math.sin(angle)*distance+'px');
+
+f.style.left=x+'px';
+f.style.top=y+'px';
+
+document.body.appendChild(f);
+setTimeout(()=>f.remove(),1000);
+}
+}
+
+/* 主循环 */
 function loop(){
 
-// 移动系统（惯性 + 阻力）
 velocity+=accel;
-velocity*=0.92; // 阻力
-
+velocity*=0.9;
 x+=velocity;
 
-if(x<0) x=0;
-if(x>window.innerWidth-40) x=window.innerWidth-40;
+if(x<0)x=0;
+if(x>window.innerWidth-50)x=window.innerWidth-50;
 
+let bounce=Math.sin(Date.now()/120)*5;
 player.style.left=x+'px';
+player.style.transform=`translateY(${bounce}px) rotate(${velocity*2}deg)`;
 
-// 猫咪微动画（更生动）
-player.style.transform=`translateX(0px) rotate(${velocity*2}deg)`;
-
-
-// 掉落逻辑
 items.forEach((o,i)=>{
-let top=o.el.offsetTop+3;
+let top=o.el.offsetTop+4;
 o.el.style.top=top+'px';
 
 let p=player.getBoundingClientRect();
 let r=o.el.getBoundingClientRect();
 
 if(r.bottom>=p.top && r.left<p.right && r.right>p.left){
-
-score+=o.bomb?-5:10;
+if(!o.bomb){
+score+=10;
+heartBurst(r.left,r.top);
+}else{
+score-=5;
+}
 o.el.remove();
 items.splice(i,1);
 updateUI();
@@ -167,19 +262,64 @@ requestAnimationFrame(loop);
 }
 loop();
 
-
-// ⏱ 时间
+/* 时间 */
 setInterval(()=>{
+if(time<=0)return;
 time--;
 updateUI();
-
-if(time<=0){
-alert("Final Score: "+score);
-location.reload();
-}
+if(time<=0) endGame();
 },1000);
 
+/* 🎉 结束 */
+function endGame(){
+bgm.pause();
+show('endScreen');
+
+let msg;
+
+if(score>120){msg="🌟 Super Lucky!";finalDays=365;}
+else if(score>70){msg="✨ Very Lucky!";finalDays=200;}
+else{msg="💖 Sweet Lucky!";finalDays=100;}
+
+finalTitle.innerText="🎂 Happy Birthday Jussie 🎂";
+finalScore.innerText="You got "+score+" fortune points!";
+fortuneMsg.innerText=msg+" For next "+finalDays+" days you will be extra lucky!";
+
+/* 🎆 烟花连发 */
+for(let i=0;i<8;i++){
+setTimeout(()=>{
+fireworkBurst(
+Math.random()*window.innerWidth,
+Math.random()*window.innerHeight/2
+);
+},i*300);
+}
+}
+
+/* 📱 分享 */
+function shareWhatsApp(){
+let text=`🎂 Happy Birthday Jussie 🎂\nI got ${score} fortune points!\nYou will be lucky for ${finalDays} days 💖`;
+let url="https://wa.me/?text="+encodeURIComponent(text);
+window.open(url,"_blank");
+}
+
+/* 📸 截图 */
+function downloadImage(){
+html2canvas(document.body).then(canvas=>{
+let link=document.createElement('a');
+link.download="Birthday.png";
+link.href=canvas.toDataURL();
+link.click();
+});
+}
+
+/* 重来 */
+function restartGame(){
+location.reload();
+}
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </body>
 </html>
